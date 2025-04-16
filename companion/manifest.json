@@ -2,15 +2,15 @@
 	"id": "evertz-eqt",
 	"name": "evertz-eqt",
 	"shortname": "evertz-eqt",
-	"description": "A short one line description of your module",
-	"version": "0.0.0",
+	"description": "control of scripps eqt systems",
+	"version": "1.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-your-module-name.git",
-	"bugs": "https://github.com/bitfocus/companion-module-your-module-name/issues",
+	"repository": "git+https://github.com/GuideOTA/companion-module-template-js",
+	"bugs": "https://github.com/GuideOTA/companion-module-template-js/issues",
 	"maintainers": [
 		{
-			"name": "Your name",
-			"email": "Your email"
+			"name": "cole bewley",
+			"email": "bewley.cole@gmail.com"
 		}
 	],
 	"runtime": {
@@ -20,7 +20,7 @@
 		"entrypoint": "../main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "Your company",
-	"products": ["Your product"],
+	"manufacturer": "evertz",
+	"products": ["eqt"],
 	"keywords": []
 }
