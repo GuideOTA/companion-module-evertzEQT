@@ -1,7 +1,7 @@
 {
-	"id": "your-module-name",
-	"name": "your-module-name",
-	"shortname": "module-shortname",
+	"id": "evertz-eqt",
+	"name": "evertz-eqt",
+	"shortname": "evertz-eqt",
 	"description": "A short one line description of your module",
 	"version": "0.0.0",
 	"license": "MIT",
