@@ -1,69 +1,6 @@
 const { InstanceStatus, TCPHelper } = require('@companion-module/base')
 
 module.exports = {
-	async initConnection() {
-		let self = this
-
-		//clear any existing intervals
-		clearInterval(self.INTERVAL)
-
-		if (self.config.host && self.config.host !== '') {
-			self.updateStatus(InstanceStatus.Connecting)
-
-			self.socket = new TCPHelper(self.config.host, self.config.port)
-
-			self.socket.on('error', (error) => {
-				self.log('error', error)
-				self.updateStatus(InstanceStatus.UnknownError)
-			})
-
-			self.socket.on('connect', () => {
-				self.updateStatus(InstanceStatus.Ok)
-				self.getData() //get initial data
-				//start polling, if enabled
-				if (self.config.polling) {
-					self.INTERVAL = setInterval(() => {
-						self.getData()
-					}, self.config.pollInterval)
-				}
-			})
-
-			self.socket.on('data', (data) => {
-				self.processData(data)
-			})
-
-			self.socket.on('close', () => {
-				self.updateStatus(InstanceStatus.ConnectionFailure)
-			})
-		}
-	},
-
-	getData() {
-		let self = this
-
-		self.readNames()
-	},
-
-	async readNames() {
-		let self = this
-		
-		// called when connected after init and config update
-		// runs async so the response is handled in separate function parseQuartzResponse()
-		self.log('info', 'Refreshing Names from Router')
-
-		// build string to read destinations
-		let cmd = ''
-		for (let i = 1; i <= self.config.max_destinations; i++) {
-			cmd += '.RD' + i + '\r'
-		}
-
-		// build string to read sources
-		for (let i = 1; i <= self.config.max_sources; i++) {
-			cmd += '.RS' + i + '\r'
-		}
-
-		self.sendCommand(cmd)
-	},
 
 	async processData(data) {
 		let self = this
@@ -133,21 +70,34 @@ module.exports = {
 		}
 	},
 
-	async sendCommand(cmd) {
-		let self = this
-
-		//add carriage return, if it doesn't end with that
-		if (cmd.slice(-1) != '\r') {
+	async sendCommand(instance, cmd) {
+		// Ensure cmd is a string
+		cmd = String(cmd)
+	
+		// Add a carriage return if it doesn't already end with one
+		if (cmd.slice(-1) !== '\r') {
 			cmd += '\r'
 		}
-
-		if (self.socket && self.socket.isConnected) {
-			let sendBuf = Buffer.from(cmd, 'latin1')
-			if (self.config.verbose) {
-				self.log('debug', 'Sending command: ' + cmd)
+	
+		// Check if the socket is connected and valid
+		if (instance.socket && !instance.socket.destroyed) {
+			try {
+				// Send the command using the write method
+				instance.socket.write(cmd, 'latin1', (err) => {
+					if (err) {
+						instance.log('error', `Failed to send command: ${err.message}`)
+					} else {
+						instance.log('debug', `Command sent: ${cmd}`)
+					}
+				})
+	
+				// Store the last command for debugging purposes
+				instance.lastCommand = cmd
+			} catch (error) {
+				instance.log('error', `Error while sending command: ${error.message}`)
 			}
-			self.socket.send(sendBuf)
-			self.lastCommand = cmd //store the last command for debugging purposes
+		} else {
+			instance.log('error', 'Socket is not connected or has been destroyed. Cannot send command.')
 		}
-	},
+	}
 }
