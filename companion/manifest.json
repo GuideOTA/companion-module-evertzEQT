@@ -5,8 +5,8 @@
 	"description": "control of scripps eqt systems",
 	"version": "1.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/GuideOTA/companion-module-evertz-EQT",
-	"bugs": "https://github.com/GuideOTA/companion-module-evertz-EQT/issues",
+	"repository": "git+https://github.com/GuideOTA/companion-module-evertzEQT",
+	"bugs": "https://github.com/GuideOTA/companion-module-evertzEQT/issues",
 	"maintainers": [
 		{
 			"name": "cole bewley",
