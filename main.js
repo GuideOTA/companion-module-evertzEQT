@@ -1,22 +1,59 @@
 const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
-const UpgradeScripts = require('./upgrades')
-const UpdateActions = require('./actions')
-const UpdateFeedbacks = require('./feedbacks')
-const UpdateVariableDefinitions = require('./variables')
+const UpgradeScripts = require('./src/upgrades')
+const UpdateActions = require('./src/actions')
+const UpdateFeedbacks = require('./src/feedbacks')
+const UpdateVariableDefinitions = require('./src/variables')
+const apiconn = require('./src/api.js')
+const net = require('net')
 
 class ModuleInstance extends InstanceBase {
 	constructor(internal) {
 		super(internal)
+		this.maxSources = 12 // Default value
+        this.maxDestinations = 6 // Default value
+	}
+
+	async initConnection() {
+		if (this.socket) {
+			this.socket.destroy()
+			this.socket = null
+		}
+	
+		this.log('debug', `Attempting to connect to ${this.config.host}:${this.config.port}`)
+	
+		this.socket = new net.Socket()
+	
+		this.socket.connect(this.config.port, this.config.host, () => {
+			this.log('info', 'Connected to the router')
+			this.updateStatus(InstanceStatus.Ok)
+		})
+	
+		this.socket.on('error', (err) => {
+			this.log('error', `Connection error: ${err.message}`)
+			this.updateStatus(InstanceStatus.Error, err.message)
+		})
+	
+		this.socket.on('close', () => {
+			this.log('info', 'Connection closed')
+			this.updateStatus(InstanceStatus.ConnectionFailure)
+		})
 	}
 
 	async init(config) {
 		this.config = config
-
+	
+		// Set maxSources and maxDestinations from config
+		this.maxSources = this.config?.max_sources || 100
+		this.maxDestinations = this.config?.max_destinations || 100
+	
 		this.updateStatus(InstanceStatus.Ok)
-
+	
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+	
+		// Trigger the connection
+		await this.initConnection()
 	}
 	// When module gets deleted
 	async destroy() {
@@ -25,6 +62,8 @@ class ModuleInstance extends InstanceBase {
 
 	async configUpdated(config) {
 		this.config = config
+		// Reinitialize the connection with the updated configuration
+		await this.initConnection()
 	}
 
 	// Return config fields for web config
@@ -91,55 +130,9 @@ class ModuleInstance extends InstanceBase {
 					label: ' ',
 					value: '<hr />',
 				},
-				//polling
-				{
-					type: 'checkbox',
-					id: 'polling',
-					label: 'Enable Polling',
-					width: 3,
-					default: false,
-				},
-				{
-					type: 'number',
-					id: 'pollInterval',
-					label: 'Polling Interval (ms)',
-					width: 3,
-					default: 10000,
-					min: 100,
-					max: 60000,
-					required: true,
-					isVisible: (config) => config.polling == true,
-				},
-				{
-					type: 'static-text',
-					id: 'pollinginfo',
-					width: 6,
-					label: ' ',
-					value: 'By enabling polling, the module can retrieve the latest data from the router. Currently, it retrieves only the Source and Destination names.',
-				},
-				{
-					type: 'static-text',
-					id: 'hr3',
-					width: 12,
-					label: ' ',
-					value: '<hr />',
-				},
-				{
-					type: 'checkbox',
-					id: 'verbose',
-					label: 'Enable Verbose Logging',
-					default: false,
-					width: 3,
-				},
-				{
-					type: 'static-text',
-					id: 'info3',
-					width: 9,
-					label: ' ',
-					value: `Enabling Verbose Logging will push all incoming and outgoing data to the log, which is helpful for debugging.`,
-				},
 			]
-	}
+		}
+	
 
 	updateActions() {
 		UpdateActions(this)
