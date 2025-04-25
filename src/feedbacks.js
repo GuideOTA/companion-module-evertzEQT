@@ -1,13 +1,25 @@
 const { combineRgb } = require('@companion-module/base')
 
-module.exports = {
-	initFeedbacks: function () {
-		let self = this
-		let feedbacks = {}
+module.exports = function (instance) {
+    let self = instance
+    let feedbacks = {}
 
-		const colorWhite = combineRgb(255, 255, 255) // White
-		const colorRed = combineRgb(255, 0, 0) // Red
+    feedbacks['example_feedback'] = {
+        type: 'boolean',
+        label: 'Example Feedback',
+        description: 'An example feedback',
+        options: [
+            {
+                type: 'textinput',
+                label: 'Example Option',
+                id: 'example_option',
+                default: '',
+            },
+        ],
+        callback: (feedback) => {
+            return feedback.options.example_option === 'expected_value'
+        },
+    }
 
-		self.setFeedbackDefinitions(feedbacks)
-	},
+    self.setFeedbackDefinitions(feedbacks)
 }
