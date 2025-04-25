@@ -2,6 +2,7 @@ const { InstanceStatus, TCPHelper } = require('@companion-module/base')
 
 module.exports = {
 
+<<<<<<< HEAD
 	async processData(data) {
 		let self = this
 
@@ -69,6 +70,8 @@ module.exports = {
 			}
 		}
 	},
+=======
+>>>>>>> 3da9369a7ffd6589eedfbcfe5a2f5d5200489825
 
 	async sendCommand(instance, cmd) {
 		// Ensure cmd is a string
